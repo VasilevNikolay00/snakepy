@@ -1,112 +1,73 @@
-import random
-import pygame
+import pygame, sys, random
 
-game_run = True
+class Fruit:
+    def __init__(self):
+        self.x = random.randint(0 , cell_number-1)
+        self.y = random.randint(0 , cell_number-1)
+        self.pos = pygame.Vector2(self.x,self.y)
+        self.color = "Orange"
 
-#display variables
-height_display = 1000
-width_display = 1000
-#display setup
+    def draw_fruit(self):
+        fruit_rect = pygame.Rect(int(self.pos.x*cell_size),int(self.pos.y*cell_size),cell_size,cell_size)
+        pygame.draw.rect(screen,self.color,fruit_rect)
+
+class Snake_body:
+    def __init__(self):
+        self.body  = [pygame.Vector2(5,10),pygame.Vector2(6,10),pygame.Vector2(7,10)]
+        self.direction = pygame.Vector2(-1,0)
+
+    def draw_snake(self):
+        for block in self.body:
+            x_pos = int(block.x * cell_size)
+            y_pos = int(block.y * cell_size)
+            block_rect = pygame.Rect(x_pos,y_pos,cell_size,cell_size)
+            pygame.draw.rect(screen,"Red", block_rect)
+
+
+    def move_snake(self):
+        body_copy = self.body[:-1]
+        body_copy.insert(0,body_copy[0] + self.direction)
+        self.body = body_copy[:]
+
+class Main:
+    def __init__(self):
+        self.snake = Snake_body()
+        self.fruit = Fruit()    
+
 pygame.init()
-dis=pygame.display.set_mode((width_display,height_display))
-pygame.display.set_caption("Zmiq bace")
-pygame.display.update()
+cell_size = 40
+cell_number = 20
+screen = pygame.display.set_mode((cell_number*cell_size,cell_number*cell_size))
 clock = pygame.time.Clock()
 
-#colors
-blue = (0,0,255)
-red = (255,0,0)
-black = (0,0,0)
+fruit = Fruit()
+snake = Snake_body()
 
-#character position
-char_X = width_display/2
-char_Y = height_display/2
-change_X = 0
-change_Y = 0
-speed = 3
+screen_update = pygame.USEREVENT
+pygame.time.set_timer(screen_update,150)
 
-
-#fruit stuff
-x_fruit = 100
-y_fruit = 100
-fruit_eaten = True
-
-def wall_collision():
-
-    collsion_check = False
-
-    if char_X > width_display-50 or char_X < 0 or char_Y > height_display-50 or char_Y < 0:
-        collsion_check = True
-
-    return collsion_check
-
-def object_collision(x_obj,y_obj):
-    collsion_check = False
-
-    if char_X == x_obj or char_Y == y_obj:
-        collsion_check = True
-
-    return collsion_check
-
-   
-
-#gameloop
-while game_run == True:
-    #wall collision
-    if wall_collision() == True:
-        game_run = False
-
-    if object_collision(x_fruit, y_fruit) == True:
-        fruit_eaten = True
+while True:
 
     for event in pygame.event.get():
-
-        #closure event
-        if event.type == pygame.QUIT:
-            game_run = False
-
-       
-
-        #key input event
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                change_X = - 50
-                change_Y = 0
-
-            if event.key == pygame.K_RIGHT:
-                change_X = 50
-                change_Y = 0
-
-            if event.key == pygame.K_UP:
-                change_Y = - 50
-                change_X = 0
-                
-
-            if event.key == pygame.K_DOWN:
-                change_Y = 50
-                change_X = 0
-                
         
-        if fruit_eaten == True:
-            print("qdene")
-            x_fruit = random.randrange(width_display+50-(width_display%50),0,50)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP and snake.direction != pygame.Vector2(0,1):
+                snake.direction = pygame.Vector2(0,-1)
+            if event.key == pygame.K_DOWN and snake.direction != pygame.Vector2(0,-1):
+                snake.direction = pygame.Vector2(0,1)
+            if event.key == pygame.K_LEFT and snake.direction != pygame.Vector2(1,0):
+                snake.direction = pygame.Vector2(-1,0)
+            if event.key == pygame.K_RIGHT and snake.direction != pygame.Vector2(-1,0):
+                snake.direction = pygame.Vector2(1,0)
 
-            y_fruit = random.randrange(height_display+50-(height_display%50),0,50)
+        if event.type == screen_update:
+            snake.move_snake()
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
 
-            fruit_eaten = False
-
-
-    char_X += change_X 
-    char_Y += change_Y
-    
-  
-    pygame.draw.rect(dis, red,[x_fruit,y_fruit,50,50])
-    pygame.draw.rect(dis, blue,[char_X,char_Y,50,50])
+    screen.fill("Dark Green")       
+    fruit.draw_fruit()
+    snake.draw_snake()
     pygame.display.update()
-    dis.fill(black)
-    clock.tick(speed)
-
-#closing the game process
-pygame.quit()
-quit()
-
+    clock.tick(60)
